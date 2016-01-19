@@ -94,7 +94,7 @@ impl Board {
         for y in 0..3 {
             for x in 0..3 {
                 let index = (3 * y) + x;
-                let test = match self.board[index] {
+                match self.board[index] {
                     Square::X => ret = ret + "X",
                     Square::O => ret = ret + "O",
                     Square::NotSet => ret = ret + &index.to_string(),
@@ -124,14 +124,4 @@ impl Board {
         self.place_token(index, Square::O)
     }
 
-}
-
-pub fn to_index(index : usize) -> Result<usize, String>
-{
-    if index <= SQUARES {
-        Ok(index)
-    }
-    else {
-        Err("out of range".to_string())
-    }
 }

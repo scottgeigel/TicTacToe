@@ -13,7 +13,7 @@ mod ui {
     pub fn get_user_selection() -> Result<char, Error> {
         let mut buffer : String = String::new();
         match get_user_input(&mut buffer) {
-            Ok(length) => {
+            Ok(_) => {
                 if buffer.trim().len() > 1 {
                     Err(Error::new(ErrorKind::Other, "Expected single character"))
                 } else {
@@ -27,19 +27,19 @@ mod ui {
 
     pub fn clear_screen() {
         let cmd : [u8; 12] = [0x1bu8, 0x5bu8, 0x33u8, 0x3bu8, 0x4au8, 0x1bu8, 0x5bu8, 0x48u8, 0x1bu8, 0x5bu8, 0x32u8, 0x4au8];
-        io::stdout().write(&cmd);
+        io::stdout().write(&cmd).unwrap();
     }
 
     pub fn display(text : String) {
         clear_screen();
-        io::stdout().write(text.as_bytes());
+        io::stdout().write(text.as_bytes()).unwrap();
     }
 }
 
 struct Game {
-    board : tic_tac_toe::Board,
-    current_player : u8,
-    error_msg : String,
+    pub /*temporary*/board : tic_tac_toe::Board,
+    pub /*temporary*/current_player : u8,
+    pub /*temporary*/error_msg : String,
 }
 
 impl Game {
@@ -47,63 +47,82 @@ impl Game {
         assert!(num_players <= 2);
         Game {
             board : tic_tac_toe::Board::new(),
-            current_player : 0,
+            current_player : 1,
             error_msg : "".to_string(),
         }
+    }
+
+    pub fn make_move(&mut self, choice : usize) -> bool{
+        match self.current_player {
+            1 => return self.board.place_x(choice),
+            2 => return self.board.place_o(choice),
+            _ => {
+                println!("unexpected player {}", self.current_player);
+                panic!();
+            },
+        }
+    }
+
+    pub fn next_turn(&mut self) {
+        match self.current_player {
+            1 => self.current_player = 2,
+            2 => self.current_player = 1,
+            _ => panic!(),
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        "Player ".to_string() +
+        &self.current_player.to_string() +
+        &"'s turn\n".to_string() +
+        &self.board.to_string() +
+        &"\n".to_string() +
+        &self.error_msg + &"\n".to_string()
+    }
+
+    pub fn set_error(&mut self, message : String) {
+        self.error_msg = message
+    }
+
+    pub fn clear_error(&mut self) {
+        self.error_msg = "".to_string()
     }
 }
 
 fn main() {
-    let mut input = io::stdin().bytes();
-    let mut board : tic_tac_toe::Board = tic_tac_toe::Board::new();
-    let mut player : u8 = 1;
-    let mut error_msg : String = "".to_string();
+    let mut game : Game = Game::new(1);
     print!("Player 1's name: ");
     let mut line : String = String::new();
-    io::stdout().flush();
-    ui::get_user_input(&mut line);
+    io::stdout().flush().unwrap();
+    ui::get_user_input(&mut line).unwrap();
     println!("Hello {}", line);
     loop {
         ui::clear_screen();
         //display the board
-        ui::display(board.to_string());
-        println!("{}", error_msg);
-        println!("Player {}, make your selection", player);
+        ui::display(game.to_string());
+        println!("Player {}, make your selection", game.current_player);
 
-        error_msg = "".to_string();
+        game.clear_error();
         let input_result = ui::get_user_selection();
-        let mut input;
+        let input;
         match input_result {
             Ok(ch) => input = ch,
             Err(err) => {
-                error_msg =  err.to_string();
+                game.set_error(err.to_string());
                 continue;
             }
         }
         //validate input
         if input >= '0' && input <= '8'{
             let input = (input as usize - '0' as usize) as usize;
-            if player == 1 {
-                if !board.place_x(input) {
-                    continue;
-                }
-                player = 2;
-            }
-            else if player == 2 {
-                if !board.place_o(input) {
-                    continue;
-                }
-                player = 1;
-            }
-            else {
-                error_msg = "Internal error".to_string();
-                panic!();
+            if game.make_move(input) {
+                game.next_turn();
             }
         } else {
-            error_msg = "Invalid choice".to_string();
+            game.set_error("Invalid choice".to_string());
         }
 
-        match board.eval() {
+        match game.board.eval() {
             Some(n) => {
                 match n {
                     tic_tac_toe::GameResult::XWin => println!("X wins"),
