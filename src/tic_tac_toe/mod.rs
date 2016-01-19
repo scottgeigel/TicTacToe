@@ -90,18 +90,17 @@ impl Board {
     }
 
     pub fn to_string(&self) -> String {
-        let mut ret : String = String::new();
+        let mut ret = "".to_string();
         for y in 0..3 {
             for x in 0..3 {
                 let index = (3 * y) + x;
                 let test = match self.board[index] {
-                    Square::X => 'X',
-                    Square::O => 'O',
-                    Square::NotSet => (index as u8 + ('0' as u8)) as char,
+                    Square::X => ret = ret + "X",
+                    Square::O => ret = ret + "O",
+                    Square::NotSet => ret = ret + &index.to_string(),
                 };
-                print!("{} ", test);
             }
-            println!("");
+            ret = ret + "\n";
         }
         return ret;
     }
