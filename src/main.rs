@@ -3,6 +3,8 @@ use std::io::prelude::*;
 mod tic_tac_toe;
 mod ui;
 
+const VERSION : &'static str = "1.0.0";
+
 struct Game {
     pub /*temporary*/board : tic_tac_toe::Board,
     pub /*temporary*/current_player : u8,
@@ -80,6 +82,8 @@ impl Game {
 }
 
 fn main() {
+    println!("Tic Tac Toe version {}", VERSION);
+
     let mut game : Game = Game::new(1);
     let mut line : String = String::new();
     //TODO: add ui::user_prompt_input
