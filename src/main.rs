@@ -1,45 +1,14 @@
 use std::io;
 use std::io::prelude::*;
 mod tic_tac_toe;
-
-mod ui {
-    use std::io;
-    use std::io::Write;
-    use std::io::{Error, ErrorKind};
-    pub fn get_user_input(buffer: &mut String) -> Result<usize, Error> {
-        io::stdin().read_line(buffer)
-    }
-
-    pub fn get_user_selection() -> Result<char, Error> {
-        let mut buffer : String = String::new();
-        match get_user_input(&mut buffer) {
-            Ok(_) => {
-                if buffer.trim().len() > 1 {
-                    Err(Error::new(ErrorKind::Other, "Expected single character"))
-                } else {
-                    Ok(buffer.as_bytes()[0] as char)
-                }
-            },
-            Err(e) => Err(e),
-        }
-        //make sure the line only has 1 character
-    }
-
-    pub fn clear_screen() {
-        let cmd : [u8; 12] = [0x1bu8, 0x5bu8, 0x33u8, 0x3bu8, 0x4au8, 0x1bu8, 0x5bu8, 0x48u8, 0x1bu8, 0x5bu8, 0x32u8, 0x4au8];
-        io::stdout().write(&cmd).unwrap();
-    }
-
-    pub fn display(text : String) {
-        clear_screen();
-        io::stdout().write(text.as_bytes()).unwrap();
-    }
-}
+mod ui;
 
 struct Game {
     pub /*temporary*/board : tic_tac_toe::Board,
     pub /*temporary*/current_player : u8,
     pub /*temporary*/error_msg : String,
+    player_1_name : String,
+    player_2_name : String,
 }
 
 impl Game {
@@ -49,7 +18,17 @@ impl Game {
             board : tic_tac_toe::Board::new(),
             current_player : 1,
             error_msg : "".to_string(),
+            player_1_name : "Adolfo".to_string(),
+            player_2_name : "Hernandez".to_string(),
         }
+    }
+
+    pub fn set_player_1_name(&mut self, name : String) {
+        self.player_1_name = name
+    }
+
+    pub fn set_player_2_name(&mut self, name : String) {
+        self.player_2_name = name
     }
 
     pub fn make_move(&mut self, choice : usize) -> bool{
@@ -72,12 +51,23 @@ impl Game {
     }
 
     pub fn to_string(&self) -> String {
-        "Player ".to_string() +
-        &self.current_player.to_string() +
-        &"'s turn\n".to_string() +
-        &self.board.to_string() +
-        &"\n".to_string() +
-        &self.error_msg + &"\n".to_string()
+        let mut ret = "Player ".to_string() + &self.current_player.to_string() + &"'s";
+        match self.current_player {
+            1 => {
+                if self.player_1_name.len() > 0 {
+                    ret = ret + " (" + &self.player_1_name + ") ";
+                }
+            },
+            2 => {
+                if self.player_2_name.len() > 0 {
+                    ret = ret + " (" + &self.player_2_name + ") ";
+                }
+            },
+            _ => panic!(),
+        }
+        ret = ret + &"turn\n".to_string() + &self.board.to_string() + &"\n".to_string() +
+            &self.error_msg + &"\n".to_string();
+        return ret;
     }
 
     pub fn set_error(&mut self, message : String) {
@@ -91,18 +81,31 @@ impl Game {
 
 fn main() {
     let mut game : Game = Game::new(1);
-    print!("Player 1's name: ");
     let mut line : String = String::new();
+    //TODO: add ui::user_prompt_input
+    print!("Player 1's name: ");
     io::stdout().flush().unwrap();
+
     ui::get_user_input(&mut line).unwrap();
+    game.set_player_1_name(line.trim().to_string());
     println!("Hello {}", line);
+    //TODO: add ui::user_prompt_input
+    print!("Player 2's name: ");
+    io::stdout().flush().unwrap();
+
+    ui::get_user_input(&mut line).unwrap();
+    game.set_player_2_name(line.trim().to_string());
+    println!("Hello {}", line);
+
     loop {
         ui::clear_screen();
         //display the board
         ui::display(game.to_string());
+        game.clear_error();
+
+        //TODO: add ui::user_prompt_selection
         println!("Player {}, make your selection", game.current_player);
 
-        game.clear_error();
         let input_result = ui::get_user_selection();
         let input;
         match input_result {
@@ -113,25 +116,23 @@ fn main() {
             }
         }
         //validate input
-        if input >= '0' && input <= '8'{
+        if input >= '0' && input <= '8' {
             let input = (input as usize - '0' as usize) as usize;
             if game.make_move(input) {
-                game.next_turn();
+                match game.board.eval() {
+                    Some(n) => {
+                        match n {
+                            tic_tac_toe::GameResult::XWin => println!("X wins"),
+                            tic_tac_toe::GameResult::OWin => println!("O wins"),
+                            tic_tac_toe::GameResult::Draw => println!("You're all losers"),
+                        };
+                        break;
+                    },
+                    None => game.next_turn(),
+                }
             }
         } else {
             game.set_error("Invalid choice".to_string());
-        }
-
-        match game.board.eval() {
-            Some(n) => {
-                match n {
-                    tic_tac_toe::GameResult::XWin => println!("X wins"),
-                    tic_tac_toe::GameResult::OWin => println!("O wins"),
-                    tic_tac_toe::GameResult::Draw => println!("You're all losers"),
-                };
-                break;
-            },
-            None => continue,
         }
     }
 }
