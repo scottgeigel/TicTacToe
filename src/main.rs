@@ -5,32 +5,50 @@ mod ui;
 
 const VERSION : &'static str = "1.0.0";
 
+struct Player {
+    pub name : String,
+    pub make_move: fn (player : &Player, game : &Game) -> usize,
+}
+impl Player {
+    fn pc_make_move(&self, game : &Game) -> usize {
+        return 0;
+    }
+    fn new (name : String) -> Player {
+        Player {
+            name : name,
+            make_move :  Player::pc_make_move,
+        }
+    }
+}
+
 struct Game {
     pub /*temporary*/board : tic_tac_toe::Board,
-    pub /*temporary*/current_player : u8,
+    pub /*temporary*/current_player : &Player,
     pub /*temporary*/error_msg : String,
-    player_1_name : String,
-    player_2_name : String,
+    player_1 : Player,
+    player_2 : Player,
 }
 
 impl Game {
     fn new(num_players : u8) -> Game {
         assert!(num_players <= 2);
-        Game {
+        let ret = Game {
             board : tic_tac_toe::Board::new(),
-            current_player : 1,
+            //current_player : &self.player_1,
             error_msg : "".to_string(),
-            player_1_name : "Adolfo".to_string(),
-            player_2_name : "Hernandez".to_string(),
-        }
+            player_1 : Player::new("Adolfo".to_string()),
+            player_2 : Player::new("Hernandez".to_string()),
+        };
+        ret.current_player = &ret.player_1;
+        return ret;
     }
 
     pub fn set_player_1_name(&mut self, name : String) {
-        self.player_1_name = name
+        self.player_1.name = name.clone()
     }
 
     pub fn set_player_2_name(&mut self, name : String) {
-        self.player_2_name = name
+        self.player_2.name = name.clone()
     }
 
     pub fn make_move(&mut self, choice : usize) -> bool{
@@ -56,13 +74,13 @@ impl Game {
         let mut ret = "Player ".to_string() + &self.current_player.to_string() + &"'s";
         match self.current_player {
             1 => {
-                if self.player_1_name.len() > 0 {
-                    ret = ret + " (" + &self.player_1_name + ") ";
+                if self.player_1.name.len() > 0 {
+                    ret = ret + " (" + &self.player_1.name + ") ";
                 }
             },
             2 => {
-                if self.player_2_name.len() > 0 {
-                    ret = ret + " (" + &self.player_2_name + ") ";
+                if self.player_2.name.len() > 0 {
+                    ret = ret + " (" + &self.player_2.name + ") ";
                 }
             },
             _ => panic!(),
