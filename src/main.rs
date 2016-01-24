@@ -5,42 +5,41 @@ mod ui;
 
 const VERSION : &'static str = "1.0.0";
 
-struct Player {
+struct Player<'a> {
     pub name : String,
-    pub make_move: fn (player : &Player, game : &Game) -> usize,
+    pub make_move: fn (player : &Player<'a>, game : &'a Game) -> usize,
+    pub number : u8
 }
-impl Player {
-    fn pc_make_move(&self, game : &Game) -> usize {
+impl<'a> Player<'a> {
+    fn pc_make_move(&self, game : &'a Game) -> usize {
         return 0;
     }
-    fn new (name : String) -> Player {
+    fn new (name : String, player_number : u8) -> Player<'a> {
         Player {
             name : name,
             make_move :  Player::pc_make_move,
+            number : player_number,
         }
     }
 }
 
-struct Game {
+struct Game<'a> {
     pub /*temporary*/board : tic_tac_toe::Board,
-    pub /*temporary*/current_player : &Player,
+    pub /*temporary*/current_player : &'a  Player<'a>,
     pub /*temporary*/error_msg : String,
-    player_1 : Player,
-    player_2 : Player,
+    player_1 : &'a Player<'a>,
+    player_2 : &'a Player<'a>,
 }
 
-impl Game {
-    fn new(num_players : u8) -> Game {
-        assert!(num_players <= 2);
-        let ret = Game {
+impl<'a> Game<'a> {
+    fn new(p1 : &'a mut Player<'a>, p2 : &'a mut Player<'a>) -> Game<'a> {
+        Game {
             board : tic_tac_toe::Board::new(),
-            //current_player : &self.player_1,
             error_msg : "".to_string(),
-            player_1 : Player::new("Adolfo".to_string()),
-            player_2 : Player::new("Hernandez".to_string()),
-        };
-        ret.current_player = &ret.player_1;
-        return ret;
+            current_player : p1,
+            player_1 : p1,
+            player_2 : p2,
+        }
     }
 
     pub fn set_player_1_name(&mut self, name : String) {
@@ -52,7 +51,7 @@ impl Game {
     }
 
     pub fn make_move(&mut self, choice : usize) -> bool{
-        match self.current_player {
+        match self.current_player.number {
             1 => return self.board.place_x(choice),
             2 => return self.board.place_o(choice),
             _ => {
