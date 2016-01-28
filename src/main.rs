@@ -5,40 +5,38 @@ mod ui;
 
 const VERSION : &'static str = "1.0.0";
 
-struct Player<'a> {
+struct Player {
     pub name : String,
-    pub make_move: fn (player : &Player<'a>, game : &'a Game) -> usize,
-    pub number : u8
+    pub make_move: fn (player : &Player, game : &mut Game) -> usize,
 }
-impl<'a> Player<'a> {
-    fn pc_make_move(&self, game : &'a Game) -> usize {
+impl Player {
+    fn pc_make_move(&self, game : &mut Game) -> usize {
         return 0;
     }
-    fn new (name : String, player_number : u8) -> Player<'a> {
+    fn new (name : String) -> Player {
         Player {
             name : name,
             make_move :  Player::pc_make_move,
-            number : player_number,
         }
     }
 }
 
-struct Game<'a> {
+struct Game {
     pub /*temporary*/board : tic_tac_toe::Board,
-    pub /*temporary*/current_player : &'a  Player<'a>,
+    pub /*temporary*/current_player : u8,
     pub /*temporary*/error_msg : String,
-    player_1 : &'a Player<'a>,
-    player_2 : &'a Player<'a>,
+    player_1 : Player,
+    player_2 : Player,
 }
 
-impl<'a> Game<'a> {
-    fn new(p1 : &'a mut Player<'a>, p2 : &'a mut Player<'a>) -> Game<'a> {
+impl Game {
+    fn new() -> Game {
         Game {
             board : tic_tac_toe::Board::new(),
             error_msg : "".to_string(),
-            current_player : p1,
-            player_1 : p1,
-            player_2 : p2,
+            current_player : 1,
+            player_1 : Player::new("Franscesco".to_string()),
+            player_2 : Player::new("Ramirez".to_string()),
         }
     }
 
@@ -51,7 +49,7 @@ impl<'a> Game<'a> {
     }
 
     pub fn make_move(&mut self, choice : usize) -> bool{
-        match self.current_player.number {
+        match self.current_player {
             1 => return self.board.place_x(choice),
             2 => return self.board.place_o(choice),
             _ => {
@@ -101,7 +99,7 @@ impl<'a> Game<'a> {
 fn main() {
     println!("Tic Tac Toe version {}", VERSION);
 
-    let mut game : Game = Game::new(1);
+    let mut game : Game = Game::new();
     let mut line : String = String::new();
     //TODO: add ui::user_prompt_input
     print!("Player 1's name: ");
