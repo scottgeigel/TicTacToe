@@ -7,7 +7,7 @@ const VERSION : &'static str = "1.0.0";
 #[derive(Debug, Clone)]
 enum PlayerNumber{
     PlayerX,
-    PlayerY,
+    PlayerO,
 }
 
 #[derive(Clone)]
@@ -19,7 +19,7 @@ impl PlayerNumber {
     pub fn to_string(&self) -> String {
         match *self {
             PlayerNumber::PlayerX => return "X".to_string(),
-            PlayerNumber::PlayerY => return "Y".to_string(),
+            PlayerNumber::PlayerO => return "O".to_string(),
         }
     }
 }
@@ -94,7 +94,7 @@ impl Game {
             error_msg : "".to_string(),
             current_player : PlayerNumber::PlayerX,
             player_1 : Player::new("Franscesco".to_string(), PlayerNumber::PlayerX),
-            player_2 : Player::new("Ramirez".to_string(), PlayerNumber::PlayerY),
+            player_2 : Player::new("Ramirez".to_string(), PlayerNumber::PlayerO),
         }
     }
 
@@ -118,7 +118,7 @@ impl Game {
                     return false;
                 }
              },
-            PlayerNumber::PlayerY => {
+            PlayerNumber::PlayerO => {
                 let choice = self.player_2.make_move(&mut game);
                 if choice < tic_tac_toe::board::SQUARES {
                     return self.board.place_o(choice);
@@ -132,8 +132,8 @@ impl Game {
 
     pub fn next_turn(&mut self) {
         match self.current_player {
-            PlayerNumber::PlayerX => self.current_player = PlayerNumber::PlayerY,
-            PlayerNumber::PlayerY => self.current_player = PlayerNumber::PlayerX,
+            PlayerNumber::PlayerX => self.current_player = PlayerNumber::PlayerO,
+            PlayerNumber::PlayerO => self.current_player = PlayerNumber::PlayerX,
         }
     }
 
@@ -145,7 +145,7 @@ impl Game {
                     ret = ret + " (" + &self.player_1.name + ") ";
                 }
             },
-            PlayerNumber::PlayerY => {
+            PlayerNumber::PlayerO => {
                 if self.player_2.name.len() > 0 {
                     ret = ret + " (" + &self.player_2.name + ") ";
                 }
