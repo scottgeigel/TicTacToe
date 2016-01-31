@@ -4,39 +4,97 @@ mod tic_tac_toe;
 mod ui;
 
 const VERSION : &'static str = "1.0.0";
-
-struct Player {
-    pub name : String,
-    pub make_move: fn (player : &Player, game : &mut Game) -> usize,
+#[derive(Debug, Clone)]
+enum PlayerNumber{
+    PlayerX,
+    PlayerY,
 }
-impl Player {
-    fn pc_make_move(&self, game : &mut Game) -> usize {
-        return 0;
-    }
-    fn new (name : String) -> Player {
-        Player {
-            name : name,
-            make_move :  Player::pc_make_move,
+
+#[derive(Clone)]
+enum PlayerMode {
+    Human,
+    AI,
+}
+impl PlayerNumber {
+    pub fn to_string(&self) -> String {
+        match *self {
+            PlayerNumber::PlayerX => return "X".to_string(),
+            PlayerNumber::PlayerY => return "Y".to_string(),
         }
     }
 }
 
+#[derive(Clone)]
+struct Player {
+    pub name : String,
+    pub mode : PlayerMode,
+    pub player_number : PlayerNumber,
+}
+
+impl Player {
+    fn pc_make_move(&self, game : &mut Game) -> usize {
+        let input_result = ui::get_user_selection();
+        let input;
+        match input_result {
+            Ok(ch) => input = ch,
+            Err(err) => {
+                game.set_error(err.to_string());
+                return 10; //out of range number
+            }
+        }
+        //validate input
+        if input >= '0' && input <= '8' {
+            return (input as usize - '0' as usize) as usize;
+        } else {
+            game.set_error("Invalid choice".to_string());
+            return 10
+        }
+    }
+
+    pub fn make_move(&self, game :&Game) -> usize {
+        match self.mode {
+            PlayerMode::Human => self.pc_make_move(&mut game.clone()),
+            PlayerMode::AI => panic!(),
+        }
+    }
+    fn new (name : String, player_num : PlayerNumber) -> Player {
+        Player {
+            name : name,
+            mode :  PlayerMode::Human,
+            player_number : player_num,
+        }
+    }
+}
+
+#[derive(Clone)]
 struct Game {
-    pub /*temporary*/board : tic_tac_toe::Board,
-    pub /*temporary*/current_player : u8,
+    pub /*temporary*/board : tic_tac_toe::board::Board,
+    pub /*temporary*/current_player : PlayerNumber,
     pub /*temporary*/error_msg : String,
     player_1 : Player,
     player_2 : Player,
 }
+/*
+impl Clone for Game {
+    fn clone(&self) -> Game {
+        Game {
+            board : self.board.clone(),
+            current_player : self.current_player.clone(),
+            error_msg : "".to_string(),
+            player_1 : self.player_1.clone(),
+            player_2 : self.player_2.clone(),
+        }
+    }
+}*/
 
 impl Game {
     fn new() -> Game {
         Game {
-            board : tic_tac_toe::Board::new(),
+            board : tic_tac_toe::board::Board::new(),
             error_msg : "".to_string(),
-            current_player : 1,
-            player_1 : Player::new("Franscesco".to_string()),
-            player_2 : Player::new("Ramirez".to_string()),
+            current_player : PlayerNumber::PlayerX,
+            player_1 : Player::new("Franscesco".to_string(), PlayerNumber::PlayerX),
+            player_2 : Player::new("Ramirez".to_string(), PlayerNumber::PlayerY),
         }
     }
 
@@ -48,39 +106,50 @@ impl Game {
         self.player_2.name = name.clone()
     }
 
-    pub fn make_move(&mut self, choice : usize) -> bool{
+    pub fn make_move(&mut self) -> bool{
+        let mut game : Game = self.clone();
         match self.current_player {
-            1 => return self.board.place_x(choice),
-            2 => return self.board.place_o(choice),
-            _ => {
-                println!("unexpected player {}", self.current_player);
-                panic!();
-            },
+            PlayerNumber::PlayerX => {
+                let choice = self.player_1.make_move(&mut game);
+                if choice < tic_tac_toe::board::SQUARES {
+                    return self.board.place_x(choice);
+                }
+                else {
+                    return false;
+                }
+             },
+            PlayerNumber::PlayerY => {
+                let choice = self.player_2.make_move(&mut game);
+                if choice < tic_tac_toe::board::SQUARES {
+                    return self.board.place_o(choice);
+                }
+                else {
+                    return false;
+                }
+             },
         }
     }
 
     pub fn next_turn(&mut self) {
         match self.current_player {
-            1 => self.current_player = 2,
-            2 => self.current_player = 1,
-            _ => panic!(),
+            PlayerNumber::PlayerX => self.current_player = PlayerNumber::PlayerY,
+            PlayerNumber::PlayerY => self.current_player = PlayerNumber::PlayerX,
         }
     }
 
     pub fn to_string(&self) -> String {
         let mut ret = "Player ".to_string() + &self.current_player.to_string() + &"'s";
         match self.current_player {
-            1 => {
+            PlayerNumber::PlayerX => {
                 if self.player_1.name.len() > 0 {
                     ret = ret + " (" + &self.player_1.name + ") ";
                 }
             },
-            2 => {
+            PlayerNumber::PlayerY => {
                 if self.player_2.name.len() > 0 {
                     ret = ret + " (" + &self.player_2.name + ") ";
                 }
             },
-            _ => panic!(),
         }
         ret = ret + &"turn\n".to_string() + &self.board.to_string() + &"\n".to_string() +
             &self.error_msg + &"\n".to_string();
@@ -123,35 +192,28 @@ fn main() {
         game.clear_error();
 
         //TODO: add ui::user_prompt_selection
-        println!("Player {}, make your selection", game.current_player);
+        println!("Player {:?}, make your selection", game.current_player);
 
-        let input_result = ui::get_user_selection();
-        let input;
-        match input_result {
-            Ok(ch) => input = ch,
-            Err(err) => {
-                game.set_error(err.to_string());
-                continue;
+        if game.make_move() {
+            match game.board.eval() {
+                Some(n) => {
+                    //TODO: temp patch to make board draw at the end. I don't want it like this long-term
+                    ui::clear_screen();
+                    ui::display(game.to_string());
+                    game.clear_error();
+                    //display the board
+                    match n {
+                        tic_tac_toe::board::GameResult::XWin => println!("X wins"),
+                        tic_tac_toe::board::GameResult::OWin => println!("O wins"),
+                        tic_tac_toe::board::GameResult::Draw => println!("You're all losers"),
+                    };
+                    break;
+                },
+                None => game.next_turn(),
             }
         }
-        //validate input
-        if input >= '0' && input <= '8' {
-            let input = (input as usize - '0' as usize) as usize;
-            if game.make_move(input) {
-                match game.board.eval() {
-                    Some(n) => {
-                        match n {
-                            tic_tac_toe::GameResult::XWin => println!("X wins"),
-                            tic_tac_toe::GameResult::OWin => println!("O wins"),
-                            tic_tac_toe::GameResult::Draw => println!("You're all losers"),
-                        };
-                        break;
-                    },
-                    None => game.next_turn(),
-                }
-            }
-        } else {
-            game.set_error("Invalid choice".to_string());
+        else {
+            game.set_error("Inalid selection".to_string());
         }
     }
 }

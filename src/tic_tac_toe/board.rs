@@ -1,4 +1,4 @@
-const SQUARES : usize = 9;
+pub const SQUARES : usize = 9;
 #[derive(Copy, Clone, PartialEq)]
 pub enum Square {
     X,
@@ -12,6 +12,7 @@ pub enum GameResult {
     Draw
 }
 
+#[derive(Clone)]
 pub struct Board {
     board : [Square; SQUARES]
 }
