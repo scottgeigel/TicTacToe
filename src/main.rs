@@ -4,14 +4,14 @@ mod tic_tac_toe;
 mod ui;
 
 const VERSION : &'static str = "1.0.0";
-#[derive(Debug, Clone)]
-enum PlayerNumber{
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum PlayerNumber{
     PlayerX,
     PlayerO,
 }
 
 #[derive(Clone)]
-enum PlayerMode {
+pub enum PlayerMode {
     Human,
     AI,
 }
@@ -25,7 +25,7 @@ impl PlayerNumber {
 }
 
 #[derive(Clone)]
-struct Player {
+pub struct Player {
     pub name : String,
     pub mode : PlayerMode,
     pub player_number : PlayerNumber,
@@ -54,7 +54,7 @@ impl Player {
     pub fn make_move(&self, game :&Game) -> usize {
         match self.mode {
             PlayerMode::Human => self.pc_make_move(&mut game.clone()),
-            PlayerMode::AI => panic!(),
+            PlayerMode::AI => tic_tac_toe::ai::decide_move(&mut game.clone()),
         }
     }
     fn new (name : String, player_num : PlayerNumber) -> Player {
@@ -64,10 +64,14 @@ impl Player {
             player_number : player_num,
         }
     }
+
+    fn make_ai(&mut self) {
+        self.mode = PlayerMode::AI
+    }
 }
 
 #[derive(Clone)]
-struct Game {
+pub struct Game {
     pub /*temporary*/board : tic_tac_toe::board::Board,
     pub /*temporary*/current_player : PlayerNumber,
     pub /*temporary*/error_msg : String,
@@ -102,6 +106,9 @@ impl Game {
         self.player_1.name = name.clone()
     }
 
+    pub fn make_player_2_ai(&mut self) {
+        self.player_2.make_ai()
+    }
     pub fn set_player_2_name(&mut self, name : String) {
         self.player_2.name = name.clone()
     }
@@ -185,6 +192,7 @@ fn main() {
     game.set_player_2_name(line.trim().to_string());
     println!("Hello {}", line);
 
+    game.make_player_2_ai();
     loop {
         ui::clear_screen();
         //display the board
