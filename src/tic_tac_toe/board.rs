@@ -58,7 +58,7 @@ impl Board {
             }
             //else no winner found
         }//check top-left square
-        else if self.board[0] != Square::NotSet {
+        if self.board[0] != Square::NotSet {
             let potential = self.board[0];
             //check horizontal
             if self.board[1] == potential && self.board[2] == potential {
@@ -68,7 +68,7 @@ impl Board {
                 winner = potential;
             }
         }//check bottom-right square
-        else if self.board[8] != Square::NotSet {
+        if self.board[8] != Square::NotSet {
             let potential = self.board[8];
             //check horizontal
             if self.board[6] == potential && self.board[7] == potential {
