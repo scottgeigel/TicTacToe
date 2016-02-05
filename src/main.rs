@@ -102,6 +102,10 @@ impl Game {
         }
     }
 
+    pub fn make_player_1_ai(&mut self) {
+            self.player_1.make_ai()
+    }
+
     pub fn set_player_1_name(&mut self, name : String) {
         self.player_1.name = name.clone()
     }
@@ -191,7 +195,7 @@ fn main() {
     ui::get_user_input(&mut line).unwrap();
     game.set_player_2_name(line.trim().to_string());
     println!("Hello {}", line);
-
+    game.make_player_1_ai();
     game.make_player_2_ai();
     loop {
         ui::clear_screen();
