@@ -30,6 +30,8 @@ fn minmax(game : &super::super::Game, ai_player : super::super::PlayerNumber, ac
         },
         None => {
             let mut moves = game.board.get_iterator();
+            let mut greatest_choices = Vec::new();
+            let mut smallest_choices = Vec::new();
             let mut greatest = -1;
             let mut smallest = 1;
             let mut greatest_choice = 1234;
@@ -54,14 +56,30 @@ fn minmax(game : &super::super::Game, ai_player : super::super::PlayerNumber, ac
                 if result < smallest {
                     smallest_choice = m;
                     smallest = result;
+                    smallest_choices.clear();
+                    smallest_choices.push(m)
                 }
+                else if result == smallest {
+                    smallest_choices.push(m)
+                }
+
                 if result > greatest {
                     greatest_choice = m;
                     greatest = result;
+                    greatest_choices.clear();
+                    greatest_choices.push(m)
+                }
+                else if result == greatest {
+                    greatest_choices.push(m)
                 }
             }
+
             if active_turn {
                 //maximize
+                //mix it up a bit
+                if greatest_choices.len() > 1 {
+                    return (greatest, greatest_choices[greatest_choice % greatest_choices.len()]);
+                }
                 return (greatest, greatest_choice);
             }
             else {
