@@ -2,3 +2,6 @@
 name = "tic_tac_toe"
 version = "0.1.0"
 authors = ["Scott Geigel <scott.geigel@gmail.com>"]
+
+[dependencies]
+rand = "*"

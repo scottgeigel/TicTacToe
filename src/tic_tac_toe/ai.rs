@@ -1,6 +1,7 @@
 use std::io;
-use super::board;
+use rand;
 
+use super::board;
 fn score(game : &super::super::Game, ai_player : super::super::PlayerNumber, n : super::board::GameResult) -> i8 {
     match n {
         super::board::GameResult::XWin => {
@@ -78,7 +79,7 @@ fn minmax(game : &super::super::Game, ai_player : super::super::PlayerNumber, ac
                 //maximize
                 //mix it up a bit
                 if greatest_choices.len() > 1 {
-                    return (greatest, greatest_choices[greatest_choice % greatest_choices.len()]);
+                    return (greatest, greatest_choices[rand::random::<usize>() % greatest_choices.len()]);
                 }
                 return (greatest, greatest_choice);
             }

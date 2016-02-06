@@ -1,8 +1,8 @@
+extern crate rand;
 use std::io;
 use std::io::prelude::*;
 mod tic_tac_toe;
 mod ui;
-
 const VERSION : &'static str = "1.0.0";
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PlayerNumber{
