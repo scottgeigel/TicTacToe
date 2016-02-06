@@ -29,6 +29,7 @@ pub struct Player {
     pub name : String,
     pub mode : PlayerMode,
     pub player_number : PlayerNumber,
+    pub handicap : i16,
 }
 
 impl Player {
@@ -62,6 +63,7 @@ impl Player {
             name : name,
             mode :  PlayerMode::Human,
             player_number : player_num,
+            handicap : 100,
         }
     }
 
@@ -162,7 +164,7 @@ impl Game {
                 }
             },
         }
-        ret = ret + &"turn\n".to_string() + &self.board.to_string() + &"\n".to_string() +
+        ret = ret + &" turn\n".to_string() + &self.board.to_string() + &"\n".to_string() +
             &self.error_msg + &"\n".to_string();
         return ret;
     }
