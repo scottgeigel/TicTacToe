@@ -181,22 +181,85 @@ fn main() {
 
     let mut game : Game = Game::new();
     let mut line : String = String::new();
-    //TODO: add ui::user_prompt_input
+
+    //player 1 config loop
+    //TODO: refactor this out
+    {
+        let mut invalid = false;
+        loop
+        {
+            ui::clear_screen();
+            if invalid {
+                println!("Invalid choice");
+            }
+            print!("Is Player 1 an AI?\n(y/n): ");
+            io::stdout().flush().unwrap();
+            match ui::get_user_selection() {
+                Ok(choice) => {
+                    if choice == 'y' {
+                        game.make_player_1_ai();
+                        break;
+                    }
+                    else if choice == 'n' {
+                        //players default as human
+                        break;
+                    }
+                    else {
+                        invalid = true;
+                    }
+                },
+                Err(_) => {
+                    invalid = false;
+                },
+            }
+        }
+    }
+
     print!("Player 1's name: ");
     io::stdout().flush().unwrap();
 
     ui::get_user_input(&mut line).unwrap();
     game.set_player_1_name(line.trim().to_string());
-    println!("Hello {}", line);
-    //TODO: add ui::user_prompt_input
+
+        //player 2 config loop
+        //TODO: refactor this out
+        {
+            let mut invalid = false;
+            loop
+            {
+                ui::clear_screen();
+                if invalid {
+                    println!("Invalid choice");
+                }
+                print!("Is Player 2 an AI?\n(y/n): ");
+                io::stdout().flush().unwrap();
+                match ui::get_user_selection() {
+                    Ok(choice) => {
+                        if choice == 'y' {
+                            game.make_player_2_ai();
+                            break;
+                        }
+                        else if choice == 'n' {
+                            //players default as human
+                            break;
+                        }
+                        else {
+                            invalid = true;
+                        }
+                    },
+                    Err(_) => {
+                        invalid = false;
+                    },
+                }
+            }
+        }
+
     print!("Player 2's name: ");
     io::stdout().flush().unwrap();
 
     ui::get_user_input(&mut line).unwrap();
     game.set_player_2_name(line.trim().to_string());
-    println!("Hello {}", line);
-    game.make_player_1_ai();
-    game.make_player_2_ai();
+
     loop {
         ui::clear_screen();
         //display the board
