@@ -4,8 +4,9 @@ use std::io::prelude::*;
 mod tic_tac_toe;
 mod ui;
 use tic_tac_toe::game::Game;
+use tic_tac_toe::game::GameFactory;
 fn main() {
-    let mut game : Game = Game::new();
+    let mut game_factory = GameFactory::new();
     let mut line : String = String::new();
 
     //player 1 config loop
@@ -24,7 +25,7 @@ fn main() {
             match ui::get_user_selection() {
                 Ok(choice) => {
                     if choice == 'y' {
-                        game.make_player_1_ai();
+                        game_factory.make_player_1_ai();
                         break;
                     }
                     else if choice == 'n' {
@@ -46,7 +47,7 @@ fn main() {
     io::stdout().flush().unwrap();
 
     ui::get_user_input(&mut line).unwrap();
-    game.set_player_1_name(line.trim().to_string());
+    game_factory.set_player_1_name(line.trim().to_string());
 
         //player 2 config loop
         //TODO: refactor this out
@@ -63,7 +64,7 @@ fn main() {
                 match ui::get_user_selection() {
                     Ok(choice) => {
                         if choice == 'y' {
-                            game.make_player_2_ai();
+                            game_factory.make_player_2_ai();
                             break;
                         }
                         else if choice == 'n' {
@@ -85,8 +86,9 @@ fn main() {
     io::stdout().flush().unwrap();
 
     ui::get_user_input(&mut line).unwrap();
-    game.set_player_2_name(line.trim().to_string());
+    game_factory.set_player_2_name(line.trim().to_string());
 
+    let mut game = game_factory.finalize();
     loop {
         ui::clear_screen();
         //display the board

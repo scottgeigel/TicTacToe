@@ -9,7 +9,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new() -> Game {
+    fn new() -> Game {
         Game {
             board : super::board::Board::new(),
             error_msg : "".to_string(),
@@ -17,21 +17,6 @@ impl Game {
             player_1 : super::player::Player::new("Franscesco".to_string(), super::player::PlayerNumber::PlayerX),
             player_2 : super::player::Player::new("Ramirez".to_string(), super::player::PlayerNumber::PlayerO),
         }
-    }
-
-    pub fn make_player_1_ai(&mut self) {
-            self.player_1.make_ai()
-    }
-
-    pub fn set_player_1_name(&mut self, name : String) {
-        self.player_1.name = name.clone()
-    }
-
-    pub fn make_player_2_ai(&mut self) {
-        self.player_2.make_ai()
-    }
-    pub fn set_player_2_name(&mut self, name : String) {
-        self.player_2.name = name.clone()
     }
 
     pub fn make_move(&mut self) -> bool{
@@ -90,5 +75,34 @@ impl Game {
 
     pub fn clear_error(&mut self) {
         self.error_msg = "".to_string()
+    }
+}
+
+pub struct GameFactory {
+    product : Game,
+}
+impl GameFactory {
+    pub fn new() -> GameFactory {
+        GameFactory {
+            product : Game::new(),
+        }
+    }
+    pub fn make_player_1_ai(&mut self) {
+            self.product.player_1.make_ai()
+    }
+
+    pub fn set_player_1_name(&mut self, name : String) {
+        self.product.player_1.name = name.clone()
+    }
+
+    pub fn make_player_2_ai(&mut self) {
+        self.product.player_2.make_ai()
+    }
+    pub fn set_player_2_name(&mut self, name : String) {
+        self.product.player_2.name = name.clone()
+    }
+
+    pub fn finalize(&mut self) -> Game{
+        return self.product.clone();
     }
 }
