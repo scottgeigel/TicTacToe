@@ -1,7 +1,7 @@
 use rand;
 use super::board;
 use super::player::Player;
-use super::super::Game;
+use super::game::Game;
 
 struct MinMax<'a> {
     ai_player : &'a Player,

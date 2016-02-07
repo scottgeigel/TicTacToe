@@ -1,4 +1,4 @@
-use super::super::Game;//super::game::Game;
+use super::game::Game;
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PlayerNumber{
     PlayerX,
