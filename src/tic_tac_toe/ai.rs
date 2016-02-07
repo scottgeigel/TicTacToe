@@ -24,10 +24,10 @@ impl<'a> MinMax<'a> {
         match n {
             board::GameResult::XWin | board::GameResult::OWin => {
                 if self.ai_player.player_number == game.current_player {
-                    return  1;
+                    return  1;//(self.ai_player.handicap * 1) - self.depth;
                 }
                 else {
-                    return -1;
+                    return -1;// self.depth - (self.ai_player.handicap * 1);
                 }
             },
             board::GameResult::Draw => {
@@ -47,21 +47,25 @@ impl<'a> MinMax<'a> {
                 let mut moves = game.board.get_iterator();
                 let mut greatest_choices = Vec::new();
                 let mut smallest_choices = Vec::new();
+                let mut choices = Vec::new();
                 let mut greatest = -1;
                 let mut smallest = 1;
                 let mut greatest_choice = 1234;
                 let mut smallest_choice = 5678;
 
                 for m in moves {
+                    choices.push(m)
+                }
+                for m in &choices {
                     let mut temp_game = game.clone();
                     match temp_game.current_player {
                         PlayerNumber::PlayerX => {
-                            if !temp_game.board.place_x(m) {
+                            if !temp_game.board.place_x(*m) {
                                 panic!();
                             }
                         }
                         PlayerNumber::PlayerO => {
-                            if !temp_game.board.place_o(m) {
+                            if !temp_game.board.place_o(*m) {
                                 panic!();
                             }
                         }
@@ -75,48 +79,56 @@ impl<'a> MinMax<'a> {
                     self.depth -= 1;
                     self.active_turn = !self.active_turn;
                     if result < smallest {
-                        smallest_choice = m;
+                        smallest_choice = *m;
                         smallest = result;
                         smallest_choices.clear();
-                        smallest_choices.push(m)
+                        smallest_choices.push(*m)
                     }
                     else if result == smallest {
-                        smallest_choices.push(m)
+                        smallest_choices.push(*m)
                     }
 
                     if result > greatest {
-                        greatest_choice = m;
+                        greatest_choice = *m;
                         greatest = result;
                         greatest_choices.clear();
-                        greatest_choices.push(m)
+                        greatest_choices.push(*m)
                     }
                     else if result == greatest {
-                        greatest_choices.push(m)
+                        greatest_choices.push(*m)
                     }
                 }
 
                 if self.active_turn {
                     //maximize
                     //mix it up a bit
-                    if greatest_choices.len() > 1 {
+                    if greatest_choices.len() > 0 {
                         self.choice = greatest_choices[rand::random::<usize>() % greatest_choices.len()];
                         return greatest;
                     }
-                    assert!(greatest != 1234);
-                    self.choice = greatest_choice;
-                    return greatest;
                 }
                 else {
                     //minimize
                     //mix it up a bit
-                    if smallest_choices.len() > 1 {
+                    if smallest_choices.len() > 0 {
                         self.choice = smallest_choices[rand::random::<usize>() % smallest_choices.len()];
                         return smallest;
                     }
-                    assert!(smallest != 5678);
-                    self.choice = smallest_choice;
-                    return smallest;
                 }
+                if self.active_turn {
+                    println!("maximize");
+                }
+                else {
+                    println!("minimize");
+                }
+                println!("Depth {}", self.depth);
+                println!("choices {:?}", choices);
+                println!("smallest_choice {}", smallest_choice);
+                println!("smallest {}", smallest);
+                println!("smallest_choices {:?}", smallest_choices);
+                println!("greatest_choice {}", greatest_choice);
+                println!("greatest {}", greatest);
+                println!("greatest_choices {:?}", greatest_choices);
             },
         }
         panic!();
@@ -127,6 +139,7 @@ pub fn decide_move(game : &mut Game) -> usize  {
     let mut ai = MinMax::new(&game.player_1);
     ai.minmax(game);
     if ai.choice < 0 || ai.choice > 8 {
+        println!("Invalid choice {}", ai.choice);
         panic!();
     }
     return ai.choice;

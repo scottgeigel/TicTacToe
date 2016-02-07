@@ -63,7 +63,7 @@ impl Player {
             name : name,
             mode :  PlayerMode::Human,
             player_number : player_num,
-            handicap : 100,
+            handicap : 1,
         }
     }
 
