@@ -1,17 +1,16 @@
 use rand;
 use super::board;
-use super::super::Player;
-use super::super::PlayerNumber;
+use super::player::Player;
 use super::super::Game;
 
 struct MinMax<'a> {
-    ai_player : &'a super::super::Player,
+    ai_player : &'a Player,
     active_turn : bool,
     depth : i16,
     choice : usize,
 }
 impl<'a> MinMax<'a> {
-    fn new(_ai_player : &'a super::super::Player) -> MinMax {
+    fn new(_ai_player : &'a Player) -> MinMax {
         MinMax {
             ai_player : _ai_player,
             active_turn : true,
@@ -59,12 +58,12 @@ impl<'a> MinMax<'a> {
                 for m in &choices {
                     let mut temp_game = game.clone();
                     match temp_game.current_player {
-                        PlayerNumber::PlayerX => {
+                        super::player::PlayerNumber::PlayerX => {
                             if !temp_game.board.place_x(*m) {
                                 panic!();
                             }
                         }
-                        PlayerNumber::PlayerO => {
+                        super::player::PlayerNumber::PlayerO => {
                             if !temp_game.board.place_o(*m) {
                                 panic!();
                             }

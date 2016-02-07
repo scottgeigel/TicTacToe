@@ -3,104 +3,24 @@ use std::io;
 use std::io::prelude::*;
 mod tic_tac_toe;
 mod ui;
-const VERSION : &'static str = "1.0.0";
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum PlayerNumber{
-    PlayerX,
-    PlayerO,
-}
-
-#[derive(Clone)]
-pub enum PlayerMode {
-    Human,
-    AI,
-}
-impl PlayerNumber {
-    pub fn to_string(&self) -> String {
-        match *self {
-            PlayerNumber::PlayerX => return "X".to_string(),
-            PlayerNumber::PlayerO => return "O".to_string(),
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct Player {
-    pub name : String,
-    pub mode : PlayerMode,
-    pub player_number : PlayerNumber,
-    pub handicap : i16,
-}
-
-impl Player {
-    fn pc_make_move(&self, game : &mut Game) -> usize {
-        let input_result = ui::get_user_selection();
-        let input;
-        match input_result {
-            Ok(ch) => input = ch,
-            Err(err) => {
-                game.set_error(err.to_string());
-                return 10; //out of range number
-            }
-        }
-        //validate input
-        if input >= '0' && input <= '8' {
-            return (input as usize - '0' as usize) as usize;
-        } else {
-            game.set_error("Invalid choice".to_string());
-            return 10
-        }
-    }
-
-    pub fn make_move(&self, game :&Game) -> usize {
-        match self.mode {
-            PlayerMode::Human => self.pc_make_move(&mut game.clone()),
-            PlayerMode::AI => tic_tac_toe::ai::decide_move(&mut game.clone()),
-        }
-    }
-    fn new (name : String, player_num : PlayerNumber) -> Player {
-        Player {
-            name : name,
-            mode :  PlayerMode::Human,
-            player_number : player_num,
-            handicap : 1,
-        }
-    }
-
-    fn make_ai(&mut self) {
-        self.mode = PlayerMode::AI
-    }
-}
 
 #[derive(Clone)]
 pub struct Game {
     pub /*temporary*/board : tic_tac_toe::board::Board,
-    pub /*temporary*/current_player : PlayerNumber,
+    pub /*temporary*/current_player : tic_tac_toe::player::PlayerNumber,
     pub /*temporary*/error_msg : String,
-    player_1 : Player,
-    player_2 : Player,
+    player_1 : tic_tac_toe::player::Player,
+    player_2 : tic_tac_toe::player::Player,
 }
-/*
-impl Clone for Game {
-    fn clone(&self) -> Game {
-        Game {
-            board : self.board.clone(),
-            current_player : self.current_player.clone(),
-            error_msg : "".to_string(),
-            player_1 : self.player_1.clone(),
-            player_2 : self.player_2.clone(),
-        }
-    }
-}*/
 
 impl Game {
     fn new() -> Game {
         Game {
             board : tic_tac_toe::board::Board::new(),
             error_msg : "".to_string(),
-            current_player : PlayerNumber::PlayerX,
-            player_1 : Player::new("Franscesco".to_string(), PlayerNumber::PlayerX),
-            player_2 : Player::new("Ramirez".to_string(), PlayerNumber::PlayerO),
+            current_player :tic_tac_toe::player:: PlayerNumber::PlayerX,
+            player_1 : tic_tac_toe::player::Player::new("Franscesco".to_string(), tic_tac_toe::player::PlayerNumber::PlayerX),
+            player_2 : tic_tac_toe::player::Player::new("Ramirez".to_string(), tic_tac_toe::player::PlayerNumber::PlayerO),
         }
     }
 
@@ -122,7 +42,7 @@ impl Game {
     pub fn make_move(&mut self) -> bool{
         let mut game : Game = self.clone();
         match self.current_player {
-            PlayerNumber::PlayerX => {
+            tic_tac_toe::player::PlayerNumber::PlayerX => {
                 let choice = self.player_1.make_move(&mut game);
                 if choice < tic_tac_toe::board::SQUARES {
                     return self.board.place_x(choice);
@@ -131,7 +51,7 @@ impl Game {
                     return false;
                 }
              },
-            PlayerNumber::PlayerO => {
+            tic_tac_toe::player::PlayerNumber::PlayerO => {
                 let choice = self.player_2.make_move(&mut game);
                 if choice < tic_tac_toe::board::SQUARES {
                     return self.board.place_o(choice);
@@ -145,20 +65,20 @@ impl Game {
 
     pub fn next_turn(&mut self) {
         match self.current_player {
-            PlayerNumber::PlayerX => self.current_player = PlayerNumber::PlayerO,
-            PlayerNumber::PlayerO => self.current_player = PlayerNumber::PlayerX,
+            tic_tac_toe::player::PlayerNumber::PlayerX => self.current_player = tic_tac_toe::player::PlayerNumber::PlayerO,
+            tic_tac_toe::player::PlayerNumber::PlayerO => self.current_player = tic_tac_toe::player::PlayerNumber::PlayerX,
         }
     }
 
     pub fn to_string(&self) -> String {
         let mut ret = "Player ".to_string() + &self.current_player.to_string() + &"'s";
         match self.current_player {
-            PlayerNumber::PlayerX => {
+            tic_tac_toe::player::   PlayerNumber::PlayerX => {
                 if self.player_1.name.len() > 0 {
                     ret = ret + " (" + &self.player_1.name + ") ";
                 }
             },
-            PlayerNumber::PlayerO => {
+            tic_tac_toe::player::PlayerNumber::PlayerO => {
                 if self.player_2.name.len() > 0 {
                     ret = ret + " (" + &self.player_2.name + ") ";
                 }
@@ -179,8 +99,6 @@ impl Game {
 }
 
 fn main() {
-    println!("Tic Tac Toe version {}", VERSION);
-
     let mut game : Game = Game::new();
     let mut line : String = String::new();
 
@@ -194,6 +112,7 @@ fn main() {
             if invalid {
                 println!("Invalid choice");
             }
+            println!("Tic Tac Toe version {}", env!("CARGO_PKG_VERSION"));
             print!("Is Player 1 an AI?\n(y/n): ");
             io::stdout().flush().unwrap();
             match ui::get_user_selection() {
